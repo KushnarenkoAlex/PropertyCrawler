@@ -7,7 +7,6 @@ Setup:
 1. Configure local env
 > npm init
 > npm install --save express  
-> npm install --save body-parser
 > npm install --save cors 
 > npm install --save dotenv
 > npm install --save aws-sdk 

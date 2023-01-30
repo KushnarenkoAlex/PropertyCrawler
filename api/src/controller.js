@@ -1,28 +1,29 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const data = require("./data");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import { getAll, getItem } from "./data.js";
+import * as dotenv from 'dotenv'
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
-app.get("/property", (req, res) => {
-  res.json(data);
+app.get("/property", async (req, res) => {
+  let allItems = await getAll();
+  res.json(allItems);
 });
-app.get("/property/:id", (req, res) => {
+app.get("/property/:id", async (req, res) => {
   const id = req.params.id;
-  let property = data.find((property) => property.id === parseInt(id));
+  let property = await getItem(id);
   if (property) {
     res.json(property);
     return;
   }
 
-  res.status(404).send("Book not found");
+  res.status(404).send("Property not found");
 });
 
 app.listen(port, () =>

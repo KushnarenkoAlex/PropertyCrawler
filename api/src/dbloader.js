@@ -1,9 +1,9 @@
-const db = require("./dbclient.js");
+import { documentClient } from "./dbclient.js";
 
 const tableName = "Property";
 
 async function load() {
-  const data = await db.documentClient
+  const data = await documentClient
     .put({
       Item: {
         Id: "2",

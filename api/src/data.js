@@ -1,19 +1,38 @@
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import { ddbClient } from "./dbclient.js";
+import { dynamoDB, converter } from "./dbclient.js";
 
-export const params = {
-    TableName: "PROPERTIES",
-    Key: {
-      primaryKey: "ID",
-      sortKey: "ID",
-    },
-  };
-  
-  export const getItem = async () => {
-    try {
-      const data = await ddbClient.send(new GetCommand(params));
-      console.log("Success :", data.Item);
-    } catch (err) {
-      console.log("Error", err);
-    }
-  };
+const tableName = "Property";
+
+const getItemParams = {
+  TableName: tableName,
+};
+
+const getAllParams = {
+  TableName: tableName,
+};
+
+export async function getItem(id) {
+  try {
+    const data = await dynamoDB
+      .getItem({
+        ...getItemParams,
+        Key: {
+          Id: {
+            S: id,
+          },
+        },
+      })
+      .promise();
+    return converter.unmarshall(data.Item);
+  } catch (err) {
+    console.log("Error", err);
+  }
+}
+
+export async function getAll() {
+  try {
+    const data = await dynamoDB.scan(getAllParams).promise();
+    return data.Items.map((i) => converter.unmarshall(i));
+  } catch (err) {
+    console.log("Error", err);
+  }
+}
