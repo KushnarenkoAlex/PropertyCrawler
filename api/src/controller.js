@@ -1,11 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { getAll, getItem } from "./data.js";
-import * as dotenv from 'dotenv'
-dotenv.config();
+import { getAll, getItem } from "./repository.js";
+import { loadData } from "./crawler.js";
+import { port } from "./config.js";
 
 const app = express();
-const port = process.env.PORT;
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
@@ -24,6 +23,11 @@ app.get("/property/:id", async (req, res) => {
   }
 
   res.status(404).send("Property not found");
+});
+app.get("/load", async (req, res) => {
+  const propertyIds = await loadData();
+  res.json(propertyIds);
+  return;
 });
 
 app.listen(port, () =>

@@ -1,12 +1,9 @@
 import AWS from "aws-sdk";
-import * as dotenv from 'dotenv'
-dotenv.config();
+import { region } from "./config.js";
 
-const REGION = process.env.REGION;
-
-const dynamoDB = new AWS.DynamoDB({ region: REGION });
+const dynamoDB = new AWS.DynamoDB({ region: region });
 const documentClient = new AWS.DynamoDB.DocumentClient({
-  region: REGION,
+  region: region,
 });
 const converter = AWS.DynamoDB.Converter;
 
