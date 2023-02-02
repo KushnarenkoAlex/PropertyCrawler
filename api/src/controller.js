@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cron from "node-cron";
 import { getAll, getItem } from "./repository.js";
 import { loadData } from "./crawler.js";
 import { port } from "./config.js";
@@ -24,10 +25,11 @@ app.get("/property/:id", async (req, res) => {
 
   res.status(404).send("Property not found");
 });
-app.get("/load", async (req, res) => {
-  const propertyIds = await loadData();
-  res.json(propertyIds);
-  return;
+
+cron.schedule("* */30 * * * *", async function () {
+  console.log("---------------------");
+  console.log("Loading data every 30 seconds");
+  await loadData();
 });
 
 app.listen(port, () =>

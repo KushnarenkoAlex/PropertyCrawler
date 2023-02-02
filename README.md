@@ -11,6 +11,8 @@
 * npm install --save dotenv
 * npm install --save aws-sdk 
 * npm install --save axios cheerio
+* npm install --save-dev nodemon
+* npm install --save-dev node-cron
 2. Install AWS CLI 
 3. Configure AWS CLI
 * api % aws configure
