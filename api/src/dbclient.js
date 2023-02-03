@@ -1,9 +1,9 @@
 import AWS from "aws-sdk";
-import { region } from "./config.js";
+import { REGION } from "./config.js";
 
-const dynamoDB = new AWS.DynamoDB({ region: region });
+const dynamoDB = new AWS.DynamoDB({ region: REGION });
 const documentClient = new AWS.DynamoDB.DocumentClient({
-  region: region,
+  region: REGION,
 });
 const converter = AWS.DynamoDB.Converter;
 

@@ -21,7 +21,6 @@ export async function loadData(maxPages = 50) {
         .get()
         .find((c) => c.attribs.class == "propertyCard-anchor");
       let id = idElement.attribs.id;
-      // console.log(id);
 
       const priceA = $(element)
         .find("div > div > div > a")
@@ -36,10 +35,7 @@ export async function loadData(maxPages = 50) {
         .find((c) => c.attribs.class == "propertyCard-priceValue");
 
       const propertyLink = priceA.attribs.href;
-      // console.log(propertyLink);
       const propertyPriceText = $(priceSpan).text();
-      // console.log(propertyPriceText);
-
       const content = $(element)
         .find("div > div > div")
         .get()
@@ -52,24 +48,20 @@ export async function loadData(maxPages = 50) {
           (c) => c.attribs.class == "propertyCard-branchSummary-addedOrReduced"
         );
       const date = $(dateSpan).text();
-      console.log(date);
-      console.log(JSON.stringify(date));
 
       const adressMeta = $(content)
         .find("div > a > address > meta")
         .get()
         .find((c) => c.attribs.itemprop == "streetAddress");
       const addressLine = adressMeta.attribs.content;
-      // console.log(addressLine);
 
-      if (date === "Added today") {
-        console.log("Trying to add");
+      if (date === "Added today" || date === "Reduced today") {
         id = id.slice(4);
         await put({
           Id: id,
           Link: propertyLink,
           PriceText: propertyPriceText,
-          Date: new Date().toISOString().slice(0, 10),
+          Date: new Date().toLocaleString(),
           Address: addressLine,
         }).then(() => {
           propertyIds.add(id);
