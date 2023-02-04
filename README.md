@@ -26,5 +26,6 @@
 * Default output format [None]: json
 4. Create table 
 * aws dynamodb create-table --cli-input-json file://Property.json  --region eu-west-2
+* aws dynamodb create-table --cli-input-json file://Subscription.json  --region eu-west-2
 5. Install Server
 * brew install ngrok/ngrok/ngrok

@@ -1,20 +1,39 @@
 import { load } from "cheerio";
 import axios from "axios";
-import { put } from "./repository.js";
+import { putProperty, getAllSubscriptions, getProperty } from "./repository.js";
+import { sendNotification } from "./index.js";
 
-export async function loadData(maxPages = 50) {
-  const paginationURLsToVisit = [
-    "https://www.rightmove.co.uk/property-to-rent/find.html?locationIdentifier=REGION%5E93754&sortType=6&savedSearchId=44893972&minBedrooms=1&maxPrice=2500&radius=1.0&index=1&propertyTypes=&mustHave=&dontShow=&includeLetAgreed=false&furnishTypes=",
-  ];
-  const visitedURLs = [];
+export async function loadDataForEachUser() {
+  await getAllSubscriptions()
+    .then(async (userSubs) => {
+      const result = [];
+      for (const sub of userSubs) {
+        const userId = sub.Id;
+        const subs = sub.search_list;
+        for (const url of subs) {
+          const res = await loadData(url, userId);
+          result.push(...res);
+        }
+        return result;
+      }
+    })
+    .then((newProperties) => {
+      for (const newProperty of newProperties) {
+        const message = `${newProperty.Address}\n${newProperty.PriceText}\n${newProperty.Link}`;
+        console.log(message);
+        sendNotification(newProperty.UserId, message);
+      }
+    })
+    .catch((e) => console.log(e));
+}
 
-  const propertyIds = new Set();
+export async function loadData(url, userId) {
+  const propertiesToAdd = new Set();
+  const newProperties = new Set();
 
-  while (paginationURLsToVisit.length !== 0 && visitedURLs.length <= maxPages) {
-    const paginationURL = paginationURLsToVisit.pop();
-    const pageHTML = await axios.get(paginationURL);
-    visitedURLs.push(paginationURL);
-    const $ = load(pageHTML.data);
+  const pageHTML = await axios.get(url);
+  const $ = load(pageHTML.data);
+  await Promise.all(
     $("div.propertyCard").each(async (index, element) => {
       const idElement = $(element)
         .find("a")
@@ -56,18 +75,28 @@ export async function loadData(maxPages = 50) {
       const addressLine = adressMeta.attribs.content;
 
       if (date === "Added today" || date === "Reduced today") {
-        id = id.slice(4);
-        await put({
-          Id: id,
-          Link: propertyLink,
+        const property = {
+          Id: id.slice(4),
+          Link: "https://www.rightmove.co.uk" + propertyLink,
           PriceText: propertyPriceText,
+          UserId: userId,
           Date: new Date().toLocaleString(),
           Address: addressLine,
-        }).then(() => {
-          propertyIds.add(id);
-        });
+        };
+        propertiesToAdd.add(property);
       }
-    });
+    })
+  );
+
+  for (const newProp of propertiesToAdd) {
+    const existingProp = await getProperty(newProp.Id);
+    if (!existingProp.Id) {
+      await putProperty(newProp)
+        .then(() => {
+          newProperties.add(newProp);
+        })
+        .catch((e) => console.log(e));
+    }
   }
-  return propertyIds;
+  return newProperties;
 }

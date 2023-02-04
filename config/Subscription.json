@@ -1,5 +1,5 @@
 {
-  "TableName": "Property",
+  "TableName": "Subscription",
   "AttributeDefinitions": [
     { "AttributeName": "Id", "AttributeType": "S" }
   ],

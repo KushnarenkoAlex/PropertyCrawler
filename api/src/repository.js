@@ -36,14 +36,12 @@ export async function getAllProperties() {
 
 export async function putProperty(item) {
   try {
-    const data = await documentClient
+    await documentClient
       .put({
-        TableName: tableName,
+        TableName: propertyTableName,
         Item: item,
       })
       .promise();
-    console.log("Saved property");
-    console.log(JSON.stringify(data));
   } catch (err) {
     console.log("Error", err);
   }
@@ -52,27 +50,50 @@ export async function putProperty(item) {
 export async function addSubscription(userId, searchUrl) {
   try {
     const params = {
-      TableName: tableName,
+      TableName: subscriptionTableName,
       Key: {
-        Id: userId
+        Id: userId.toString(),
       },
-      UpdateExpression: `SET #questions = list_append(if_not_exists(#searchList, :empty_list), :value)`,
-      ExpressionAttributeNames: {
-        '#questions': 'questions'
-      },
+      UpdateExpression: `SET search_list = list_append(if_not_exists(search_list, :empty_list), :vals)`,
       ExpressionAttributeValues: {
-        ':empty_list': [],
-        ':search_url': searchUrl
-      }
+        ":empty_list": [],
+        ":vals": [searchUrl],
+      },
     };
-    const data = await documentClient
-      .put({
-        TableName: tableName,
-        Item: item,
+    const data = await documentClient.update(params).promise();
+    console.log(`Subscription for user ${userId} updated`);
+  } catch (err) {
+    console.log("Error", err);
+  }
+}
+
+export async function clearSubscriptions(userId) {
+  try {
+    const params = {
+      TableName: subscriptionTableName,
+      Key: {
+        Id: userId.toString(),
+      },
+      UpdateExpression: `SET search_list = :empty_list`,
+      ExpressionAttributeValues: {
+        ":empty_list": [],
+      },
+    };
+    const data = await documentClient.update(params).promise();
+    console.log(`Subscription for user ${userId} cleared`);
+  } catch (err) {
+    console.log("Error", err);
+  }
+}
+
+export async function getAllSubscriptions() {
+  try {
+    const data = await dynamoDB
+      .scan({
+        TableName: subscriptionTableName,
       })
       .promise();
-    console.log("Saved property");
-    console.log(JSON.stringify(data));
+    return data.Items.map((i) => converter.unmarshall(i));
   } catch (err) {
     console.log("Error", err);
   }
